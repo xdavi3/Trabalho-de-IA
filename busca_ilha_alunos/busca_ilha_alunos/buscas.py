@@ -75,7 +75,34 @@ def busca_greedy(vizinhos_fn, heuristica_fn, altura, largura, origem, destino, s
         - Não expandir duas vezes o mesmo nó; o predecessor de cada nó é definido na primeira vez em que ele é descoberto.
         - Criar o histórico com HistoricoBusca(snapshots), registrar cada expansão com historico_passos.registrar(no, em_aberto, fechados) e devolver (caminho, historico_passos), com caminho vazio se o destino for inalcançável.
     """
-    raise NotImplementedError("busca_greedy() ainda não foi implementada")
+    contador = 0
+    fronteira = [(heuristica_fn(origem, destino), contador, origem)]
+    veio_de = {origem: None}
+    em_aberto = {origem}
+    fechados = set()
+    historico_passos = HistoricoBusca(snapshots)
+
+    while fronteira:
+        _, _, atual = heapq.heappop(fronteira)
+        if atual in fechados:
+            continue
+
+        em_aberto.discard(atual)
+        fechados.add(atual)
+        historico_passos.registrar(atual, em_aberto, fechados)
+
+        if atual == destino:
+            break
+
+        for prox in vizinhos_fn(atual, altura, largura):
+            if prox not in veio_de and prox not in fechados:
+                veio_de[prox] = atual
+                contador += 1
+                heapq.heappush(fronteira, (heuristica_fn(prox, destino), contador, prox))
+                em_aberto.add(prox)
+
+    return _reconstruir_caminho(veio_de, destino), historico_passos
+
 
 
 def a_estrela(vizinhos_fn, custo_fn, heuristica_fn, altura, largura, origem, destino, snapshots=True):
